@@ -5,6 +5,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 /**
+ * class to create @{@link java.security.cert.X509Certificate} from intermediate certificate file
+ *
  * Created by saeid on 4/8/16.
  */
 public class Certificate {

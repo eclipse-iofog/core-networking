@@ -3,6 +3,8 @@ package main.com.iotracks.core_networking.comsat_client;
 import java.util.concurrent.ThreadFactory;
 
 /**
+ * Thread factory for ComSat clients
+ *
  * Created by saeid on 4/11/16.
  */
 public class ComSatClientThreadFactory implements ThreadFactory {

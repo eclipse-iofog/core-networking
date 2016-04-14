@@ -2,7 +2,6 @@ package main.com.iotracks.core_networking.comsat_client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -12,24 +11,24 @@ import io.netty.handler.codec.bytes.ByteArrayDecoder;
 import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import main.com.iotracks.core_networking.utils.Certificate;
 import main.com.iotracks.core_networking.main.CoreNetworking;
+import main.com.iotracks.core_networking.utils.Certificate;
+import main.com.iotracks.core_networking.utils.Constants;
 
 import java.util.logging.Logger;
 
 /**
- * Class to establish connection to ComSat server
- *
+ * Class to connect to ComSat server
+ * <p>
  * Created by saeid on 4/8/16.
  */
 public class ComSatClient implements Runnable {
-    private final byte[] BEAT = "BEAT".getBytes();
     private final Logger log = Logger.getLogger(ComSatClient.class.getName());
     private final Certificate certificate;
 
     private SslContext sslCtx;
     private long lastSeen;
-    private Channel ch;
+    private Channel channel;
     private CoreNetworking coreNetworking = null;
     private int connectionId = -1;
     private boolean disconnect = false;
@@ -72,15 +71,14 @@ public class ComSatClient implements Runnable {
                         }
                     });
 
-            ch = b.connect(CoreNetworking.config.getHost(), CoreNetworking.config.getPort()).sync().channel();
+            channel = b.connect(CoreNetworking.config.getHost(), CoreNetworking.config.getPort()).sync().channel();
             coreNetworking.connectingDone();
-            ChannelFuture future = ch.writeAndFlush(CoreNetworking.config.getPassCode().getBytes());
             try {
-                future.sync();
+                channel.writeAndFlush(CoreNetworking.config.getPassCode().getBytes()).sync();
             } catch (Exception e) {
             }
 
-            ch.closeFuture().sync();
+            channel.closeFuture().sync();
         } catch (Exception e) {
             coreNetworking.connectingDone();
         } finally {
@@ -97,7 +95,7 @@ public class ComSatClient implements Runnable {
                 log.warning(String.format("#%d : connection lost. connecting...", connectionId));
                 Thread.sleep(1000);
                 while (coreNetworking.isConnecting()) {
-                    Thread.sleep(100);
+                    Thread.sleep(10);
                 }
                 coreNetworking.connecting();
             }
@@ -109,25 +107,38 @@ public class ComSatClient implements Runnable {
         return connectionId;
     }
 
+    /**
+     * sends "BEAT" ASCII to ComSat server
+     *
+     */
     public void beat() {
         if (System.currentTimeMillis() > (lastSeen + CoreNetworking.config.getHeartbeatThreshold())) {
-            ch.eventLoop().shutdownGracefully();
-            ch.close();
+            channel.eventLoop().shutdownGracefully();
+            channel.close();
         } else {
-            ChannelFuture future = ch.writeAndFlush(BEAT);
             try {
-                future.sync();
+                channel.writeAndFlush(Constants.BEAT).sync();
             } catch (Exception e) {
             }
         }
     }
 
+    /**
+     * closes the connection
+     *
+     */
     public void close() {
         disconnect = true;
-        ch.disconnect();
+        if (channel != null)
+            channel.disconnect();
     }
 
+    /**
+     * returns connected channel to ComSat server
+     *
+     * @return @{@link Channel}
+     */
     public Channel getChannel() {
-        return this.ch;
+        return this.channel;
     }
 }

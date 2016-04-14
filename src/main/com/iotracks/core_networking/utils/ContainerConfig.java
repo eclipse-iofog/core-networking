@@ -3,6 +3,8 @@ package main.com.iotracks.core_networking.utils;
 import javax.json.JsonObject;
 
 /**
+ * class to hold container configuration
+ *
  * Created by saeid on 4/8/16.
  */
 public class ContainerConfig {

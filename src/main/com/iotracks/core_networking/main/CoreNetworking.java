@@ -18,11 +18,11 @@ public class CoreNetworking {
 
     public static ContainerConfig config = null;
     public static String containerId = "";
+    public static IOFabricClient ioFabricClient;
     private Logger log = Logger.getLogger(CoreNetworking.class.getName());
     private ComSatClient[] connections;
     private Certificate cert;
     private boolean connecting;
-    public static IOFabricClient ioFabricClient;
     private IOFabricAPIListener listener;
 
     public static void main(String[] args) throws Exception {
@@ -40,7 +40,7 @@ public class CoreNetworking {
             System.exit(1);
         }
 
-        instance.start();
+        instance.init();
     }
 
     private void getCertificate() {
@@ -76,27 +76,21 @@ public class CoreNetworking {
         }
     }
 
-    private void init() {
-        ioFabricClient.openControlWebSocket(listener);
-
+    private void start() {
         if (config.getMode().equals("private")) {
             ioFabricClient.openMessageWebSocket(listener);
         } else if (config.getMode().equals("public")) {
             config.setLocalHost("127.0.0.1");
             config.setLocalPort(8007);
+        } else {
+            while (config.getMode().equals("")) {
+                try {
+                    Thread.sleep(2000);
+                } catch (Exception e){}
+            }
         }
 
         makeConnections();
-    }
-
-    private void start() {
-        getCertificate();
-
-        ioFabricClient = new IOFabricClient("localhost", 54321, CoreNetworking.containerId);
-        listener = new APIListenerImpl(this);
-        ioFabricClient.fetchContainerConfig(listener);
-
-        init();
 
         while (true) {
             try {
@@ -106,6 +100,22 @@ public class CoreNetworking {
             } catch (Exception e) {
             }
         }
+    }
+
+    private void init() {
+        getCertificate();
+
+        String ioFabricHost = System.getProperty("iofabric_host", "localhost");
+        int ioFabricPort = 54321;
+        try {
+            ioFabricPort = Integer.parseInt(System.getProperty("iofabric_port", "54321"));
+        } catch (Exception e) {}
+        ioFabricClient = new IOFabricClient(ioFabricHost, ioFabricPort, CoreNetworking.containerId);
+        listener = new APIListenerImpl(this);
+        ioFabricClient.fetchContainerConfig(listener);
+        ioFabricClient.openControlWebSocket(listener);
+
+        start();
     }
 
     public void connectingDone() {
@@ -135,4 +145,5 @@ public class CoreNetworking {
         closeAllConnections();
         init();
     }
+
 }
