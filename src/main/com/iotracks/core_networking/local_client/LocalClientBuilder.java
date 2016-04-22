@@ -7,7 +7,7 @@ import main.com.iotracks.core_networking.main.CoreNetworking;
 
 /**
  * builder class to build private/public local clients
- *
+ * <p>
  * Created by saeid on 4/13/16.
  */
 public class LocalClientBuilder {

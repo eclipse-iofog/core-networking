@@ -2,7 +2,6 @@ package main.com.iotracks.core_networking.local_client.public_client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -12,24 +11,22 @@ import io.netty.handler.codec.bytes.ByteArrayDecoder;
 import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import main.com.iotracks.core_networking.local_client.LocalClient;
 import main.com.iotracks.core_networking.main.CoreNetworking;
-import main.com.iotracks.core_networking.utils.Constants.SocketConnectionStatus;
+
+import java.util.logging.Logger;
 
 /**
  * communications in "public" mode
- *
+ * <p>
  * Created by saeid on 4/12/16.
  */
 public class PublicLocalClient implements LocalClient {
+    private final Logger log = Logger.getLogger(PublicLocalClient.class.getName());
     private final Channel comSatChannel;
     private String localHost;
     private int localPort;
     private Channel ch;
-    private Object connectionLock = new Object();
-    private SocketConnectionStatus connectionStatus = SocketConnectionStatus.NOT_CONNECTED;
-
     /**
      * connects to local container
-     *
      */
     private Runnable run = () -> {
         EventLoopGroup group = new NioEventLoopGroup(1);
@@ -46,21 +43,13 @@ public class PublicLocalClient implements LocalClient {
                         }
                     });
 
-            synchronized (connectionLock) {
-                try {
-                    ch = b.connect(localHost, localPort).sync().channel();
-                    connectionStatus = SocketConnectionStatus.CONNECTED;
-                    connectionLock.notifyAll();
-                } catch (Exception e) {
-                    connectionLock.notifyAll();
-                    throw e;
-                }
-            }
+            log.info("connecting to local client");
+            ch = b.connect(localHost, localPort).sync().channel();
+            log.info("connected to local client");
             ch.closeFuture().sync();
-            connectionStatus = SocketConnectionStatus.NOT_CONNECTED;
-            connectionLock.notifyAll();
+            log.warning("connection to local client closed");
         } catch (Exception e) {
-            connectionStatus = SocketConnectionStatus.FAILED;
+            ch = null;
         } finally {
             group.shutdownGracefully();
         }
@@ -80,6 +69,7 @@ public class PublicLocalClient implements LocalClient {
     @Override
     public void handleMessage(byte[] message) {
         try {
+            log.info("sending bytes to local client");
             ch.writeAndFlush(message).sync();
         } catch (Exception e) {
         }
@@ -87,15 +77,25 @@ public class PublicLocalClient implements LocalClient {
 
     @Override
     public boolean isConnected() {
-        return connectionStatus.equals(SocketConnectionStatus.CONNECTED);
+        return (ch != null && ch.isActive());
+    }
+
+    @Override
+    public void closeConnection() {
+        if (ch != null)
+            try {
+                ch.disconnect();
+                ch.close();
+            } catch (Exception e) {
+            }
     }
 
     @Override
     public boolean connect(long timeout) {
-        synchronized (connectionLock) {
+        new Thread(run).start();
+        while (!isConnected()) {
             try {
-                new Thread(run).start();
-                connectionLock.wait(timeout);
+                Thread.sleep(20);
             } catch (Exception e) {
             }
         }

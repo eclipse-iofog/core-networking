@@ -9,10 +9,4 @@ public class Constants {
     public static byte[] BEAT = "BEAT".getBytes(CharsetUtil.US_ASCII);
     public static byte[] ACK = "ACK".getBytes(CharsetUtil.US_ASCII);
     public static byte[] TXEND = "TXEND".getBytes(CharsetUtil.US_ASCII);
-    public enum SocketConnectionStatus {
-        NOT_CONNECTED,
-        CONNECTED,
-        FAILED
-    }
-
 }

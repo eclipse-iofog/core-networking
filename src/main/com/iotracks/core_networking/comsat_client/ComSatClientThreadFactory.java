@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * Thread factory for ComSat clients
- *
+ * <p>
  * Created by saeid on 4/11/16.
  */
 public class ComSatClientThreadFactory implements ThreadFactory {

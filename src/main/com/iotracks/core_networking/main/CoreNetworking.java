@@ -2,6 +2,8 @@ package main.com.iotracks.core_networking.main;
 
 import com.iotracks.api.IOFabricClient;
 import com.iotracks.api.listener.IOFabricAPIListener;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.internal.StringUtil;
 import main.com.iotracks.core_networking.comsat_client.ComSatClient;
 import main.com.iotracks.core_networking.comsat_client.ComSatClientThreadFactory;
@@ -19,11 +21,14 @@ public class CoreNetworking {
     public static ContainerConfig config = null;
     public static String containerId = "";
     public static IOFabricClient ioFabricClient;
-    private Logger log = Logger.getLogger(CoreNetworking.class.getName());
+
+    private final Logger log = Logger.getLogger(CoreNetworking.class.getName());
     private ComSatClient[] connections;
     private Certificate cert;
     private boolean connecting;
     private IOFabricAPIListener listener;
+    private SslContext sslCtx;
+    private Object fetchConfigLock = new Object();
 
     public static void main(String[] args) throws Exception {
         CoreNetworking instance = new CoreNetworking();
@@ -44,12 +49,20 @@ public class CoreNetworking {
     }
 
     private void getCertificate() {
-        String path = System.getProperty("user.dir") + System.getProperty("file.separator");
-        cert = new Certificate(path + "intermediate.crt");
+        cert = new Certificate("/jar-file/intermediate.crt");
         if (cert == null) {
             log.warning("error importing certificate.");
             System.exit(1);
         }
+        try {
+            sslCtx = SslContextBuilder
+                    .forClient()
+                    .trustManager(cert.getCertificate())
+                    .build();
+        } catch (Exception e) {
+            log.warning(String.format("#%d : %s", cert, e.getMessage()));
+        }
+
     }
 
     private void makeConnections() {
@@ -64,7 +77,7 @@ public class CoreNetworking {
                 }
             }
             connecting();
-            connections[counter] = new ComSatClient(cert, this, counter);
+            connections[counter] = new ComSatClient(sslCtx, this, counter);
             threadFactory.newThread(connections[counter]).start();
         }
     }
@@ -72,21 +85,25 @@ public class CoreNetworking {
     private void closeAllConnections() {
         for (int counter = 0; counter < CoreNetworking.config.getConnectionCount(); counter++) {
             if (connections[counter] != null)
-                connections[counter].close();
+                connections[counter].close(true);
         }
     }
 
     private void start() {
         if (config.getMode().equals("private")) {
-            ioFabricClient.openMessageWebSocket(listener);
-        } else if (config.getMode().equals("public")) {
-            config.setLocalHost("127.0.0.1");
-            config.setLocalPort(8007);
+            try {
+                ioFabricClient.openMessageWebSocket(listener);
+            } catch (Exception e) {
+                log.warning("unable to open message websocket");
+                log.warning(e.getMessage());
+                System.exit(1);
+            }
         } else {
             while (config.getMode().equals("")) {
                 try {
                     Thread.sleep(2000);
-                } catch (Exception e){}
+                } catch (Exception e) {
+                }
             }
         }
 
@@ -105,15 +122,25 @@ public class CoreNetworking {
     private void init() {
         getCertificate();
 
-        String ioFabricHost = System.getProperty("iofabric_host", "localhost");
+        String ioFabricHost = System.getProperty("iofabric_host", "iofabric");
         int ioFabricPort = 54321;
         try {
             ioFabricPort = Integer.parseInt(System.getProperty("iofabric_port", "54321"));
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
+
         ioFabricClient = new IOFabricClient(ioFabricHost, ioFabricPort, CoreNetworking.containerId);
         listener = new APIListenerImpl(this);
-        ioFabricClient.fetchContainerConfig(listener);
-        ioFabricClient.openControlWebSocket(listener);
+
+        fetchConfig();
+
+        try {
+            ioFabricClient.openControlWebSocket(listener);
+        } catch (Exception e) {
+            log.warning("unable to open control websocket");
+            log.warning(e.getMessage());
+            System.exit(1);
+        }
 
         start();
     }
@@ -136,14 +163,39 @@ public class CoreNetworking {
         }
     }
 
+    private void fetchConfig() {
+        config = null;
+        try {
+            while (config == null) {
+                ioFabricClient.fetchContainerConfig(listener);
+                synchronized (fetchConfigLock) {
+                    fetchConfigLock.wait(1000);
+                }
+            }
+        } catch (Exception e) {
+            log.warning("unable to fetch config");
+            log.warning(e.getMessage());
+            System.exit(1);
+        }
+
+    }
+
     public void setConfig(ContainerConfig config) {
         CoreNetworking.config = config;
+        synchronized (fetchConfigLock) {
+            fetchConfigLock.notifyAll();
+        }
     }
 
     public void updateConfig() {
-        ioFabricClient.fetchContainerConfig(listener);
-        closeAllConnections();
-        init();
+        try {
+            log.info("new config received");
+            fetchConfig();
+            closeAllConnections();
+            ioFabricClient.openControlWebSocket(listener);
+            start();
+        } catch (Exception e) {
+        }
     }
 
 }

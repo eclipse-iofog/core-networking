@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 /**
  * ComSat connection client handler
- *
+ * <p>
  * Created by saeid on 4/8/16.
  */
 public class ComSatClientHandler extends SimpleChannelInboundHandler<byte[]> {
@@ -35,6 +35,20 @@ public class ComSatClientHandler extends SimpleChannelInboundHandler<byte[]> {
     }
 
     /**
+     * disconnects from ComSat server when connection to local container been lost.
+     *
+     * @param ctx
+     * @throws Exception
+     */
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        if (localClient != null)
+            localClient.closeConnection();
+
+        ctx.close();
+    }
+
+    /**
      * receives data from ComSat server.
      * If data is equal to "BEAT", "AUTHORIZED" or "BEATBEAT", updates last seen value of the connection
      * otherwise pipes received data to local container
@@ -45,22 +59,25 @@ public class ComSatClientHandler extends SimpleChannelInboundHandler<byte[]> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, byte[] bytes) throws Exception {
-        String contentString = "";
         if (bytes.length < 11) {
-            contentString = new String(bytes);
+            String contentString = new String(bytes);
+            log.info(String.format("#%d : %s", client.getConnectionId(), contentString));
             if (contentString.equals("BEAT") || contentString.equals("AUTHORIZED") || contentString.equals("BEATBEAT")) {
                 client.seen();
                 return;
             }
         }
 
+        log.info(String.format("#%d : %d bytes received from comsat", client.getConnectionId(), bytes.length));
         if (!localClient.isConnected()) {
+            log.info(String.format("#%d : connecting to client", client.getConnectionId()));
             if (!localClient.connect(2000)) {
-                log.warning("unable to connect to local client");
+                log.warning(String.format("#%d : unable to connect to local client", client.getConnectionId()));
                 return;
             }
         }
 
+        log.info(String.format("#%d : piping bytes from comsat to client", client.getConnectionId()));
         localClient.handleMessage(bytes);
     }
 

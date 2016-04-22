@@ -4,10 +4,21 @@ import javax.json.JsonObject;
 
 /**
  * class to hold container configuration
- *
+ * <p>
  * Created by saeid on 4/8/16.
  */
 public class ContainerConfig {
+    private final String MODE_FIELD_NAME = "mode";
+    private final String HOST_FIELD_NAME = "host";
+    private final String PORT_FIELD_NAME = "port";
+    private final String CONNECTION_COUNT_FIELD_NAME = "connectioncount";
+    private final String PASS_CODE_FIELD_NAME = "passcode";
+    private final String LOCAL_HOST_FIELD_NAME = "localhost";
+    private final String LOCAL_PORT_FIELD_NAME = "localport";
+    private final String HEARTBEAT_FREQUENCY_FIELD_NAME = "heartbeatfrequency";
+    private final String HEARTBEAT_THRESHOLD_FIELD_NAME = "heartbeatabsencethreshold";
+
+
     private String mode;
     private String host;
     private int port;
@@ -19,15 +30,15 @@ public class ContainerConfig {
     private int heartbeatThreshold;
 
     public ContainerConfig(JsonObject json) {
-        setMode(json.containsKey("mode") ? json.getString("mode") : "");
-        setHost(json.containsKey("host") ? json.getString("host") : "");
-        setPort(json.containsKey("port") ? json.getInt("port") : 0);
-        setConnectionCount(json.containsKey("connectioncount") ? json.getInt("connectioncount") : 0);
-        setPassCode(json.containsKey("passcode") ? json.getString("passcode") : "");
-        setLocalHost(json.containsKey("localhost") ? json.getString("localhost") : "");
-        setLocalPort(json.containsKey("localport") ? json.getInt("localport") : 0);
-        setHeartbeatFrequency(json.containsKey("heartbeatfrequency") ? json.getInt("heartbeatfrequency") : 0);
-        setHeartbeatThreshold(json.containsKey("heartbeatabsencethreshold") ? json.getInt("heartbeatabsencethreshold") : 0);
+        setMode(json.containsKey(MODE_FIELD_NAME) ? json.getString(MODE_FIELD_NAME) : "");
+        setHost(json.containsKey(HOST_FIELD_NAME) ? json.getString(HOST_FIELD_NAME) : "");
+        setPort(json.containsKey(PORT_FIELD_NAME) ? json.getInt(PORT_FIELD_NAME) : 0);
+        setConnectionCount(json.containsKey(CONNECTION_COUNT_FIELD_NAME) ? json.getInt(CONNECTION_COUNT_FIELD_NAME) : 0);
+        setPassCode(json.containsKey(PASS_CODE_FIELD_NAME) ? json.getString(PASS_CODE_FIELD_NAME) : "");
+        setLocalHost(json.containsKey(LOCAL_HOST_FIELD_NAME) ? json.getString(LOCAL_HOST_FIELD_NAME) : "");
+        setLocalPort(json.containsKey(LOCAL_PORT_FIELD_NAME) ? json.getInt(LOCAL_PORT_FIELD_NAME) : 0);
+        setHeartbeatFrequency(json.containsKey(HEARTBEAT_FREQUENCY_FIELD_NAME) ? json.getInt(HEARTBEAT_FREQUENCY_FIELD_NAME) : 0);
+        setHeartbeatThreshold(json.containsKey(HEARTBEAT_THRESHOLD_FIELD_NAME) ? json.getInt(HEARTBEAT_THRESHOLD_FIELD_NAME) : 0);
     }
 
     public String getMode() {

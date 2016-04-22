@@ -8,22 +8,22 @@ import main.com.iotracks.core_networking.utils.Constants;
 import main.com.iotracks.core_networking.utils.MessageRepository;
 
 import java.io.ByteArrayOutputStream;
+import java.util.logging.Logger;
 
 /**
  * communications in "private" mode
- *
+ * <p>
  * Created by saeid on 4/13/16.
  */
 public class PrivateLocalClient implements LocalClient {
     private final long ACK_TIMEOUT = 2000;
+    private final Logger log = Logger.getLogger(PrivateLocalClient.class.getName());
 
     private Channel comSatChannel;
     private ByteArrayOutputStream buffer;
     private Object ackLock = new Object();
-
     /**
      * sends buffered messages to ComSat server
-     *
      */
     private Runnable sendMessages = () -> {
         IOMessage message;
@@ -38,10 +38,12 @@ public class PrivateLocalClient implements LocalClient {
                     }
                 }
 
+                log.info("sending iomessage to comsat");
                 comSatChannel.writeAndFlush(message.getBytes()).sync();
                 synchronized (ackLock) {
                     try {
                         comSatChannel.writeAndFlush(Constants.TXEND).sync();
+                        log.info("waiting for ACK");
                         ackLock.wait(ACK_TIMEOUT);
                         MessageRepository.removeHead();
                     } catch (Exception e) {
@@ -70,21 +72,29 @@ public class PrivateLocalClient implements LocalClient {
             String messageString = new String(message);
             if (messageString.equals("TXEND")) {
                 try {
+                    log.info("TXEND received");
                     IOMessage ioMessage = new IOMessage(buffer.toByteArray());
+                    log.info("sending message to websocket");
                     CoreNetworking.ioFabricClient.sendMessageToWebSocket(ioMessage);
                     buffer.reset();
+                    log.info("sending ACK to comsat");
                     comSatChannel.writeAndFlush(Constants.ACK).sync();
                 } catch (Exception e) {
                 }
                 return;
             } else if (messageString.equals("ACK")) {
-                synchronized (ackLock) {
-                    ackLock.notifyAll();
+                try {
+                    synchronized (ackLock) {
+                        ackLock.notifyAll();
+                    }
+                    log.info("ACK received from comsat");
+                    return;
+                } catch (Exception e) {
                 }
-                return;
             }
         }
         try {
+            log.info("buffering bytes");
             buffer.write(message);
         } catch (Exception e) {
         }
@@ -98,5 +108,10 @@ public class PrivateLocalClient implements LocalClient {
     @Override
     public boolean isConnected() {
         return true;
+    }
+
+    @Override
+    public void closeConnection() {
+
     }
 }

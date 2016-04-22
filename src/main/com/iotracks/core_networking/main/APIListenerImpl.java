@@ -7,14 +7,16 @@ import main.com.iotracks.core_networking.utils.MessageRepository;
 
 import javax.json.JsonObject;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * LocalApi listener
- *
+ * <p>
  * Created by saeid on 4/8/16.
  */
 public class APIListenerImpl implements IOFabricAPIListener {
 
+    private final Logger log = Logger.getLogger(APIListenerImpl.class.getName());
     private final CoreNetworking coreNetworking;
 
     public APIListenerImpl(CoreNetworking coreNetworking) {
@@ -23,22 +25,22 @@ public class APIListenerImpl implements IOFabricAPIListener {
 
     @Override
     public void onMessages(List<IOMessage> messages) {
+        log.info(String.format("%d new message(s) received", messages.size()));
         messages.forEach(message -> MessageRepository.pushMessage(message));
     }
 
     @Override
     public void onMessagesQuery(long timeframestart, long timeframeend, List<IOMessage> messages) {
-        //
     }
 
     @Override
     public void onError(Throwable cause) {
-        System.out.println("error");
+        log.warning(cause.getMessage());
     }
 
     @Override
     public void onBadRequest(String error) {
-        System.out.println("bad request");
+        log.warning(error);
     }
 
     @Override
@@ -47,6 +49,7 @@ public class APIListenerImpl implements IOFabricAPIListener {
 
     @Override
     public void onNewConfig(JsonObject config) {
+        log.info("config received: \n" + config.toString());
         coreNetworking.setConfig(new ContainerConfig(config));
     }
 

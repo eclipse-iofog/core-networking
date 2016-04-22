@@ -4,12 +4,15 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
+import java.util.logging.Logger;
+
 /**
  * local container connection handler
- *
+ * <p>
  * Created by saeid on 4/12/16.
  */
 public class PublicLocalClientHandler extends SimpleChannelInboundHandler<byte[]> {
+    private final Logger log= Logger.getLogger(PublicLocalClientHandler.class.getName());
     private final Channel comSatChannel;
 
     public PublicLocalClientHandler(Channel comSatChannel) {
@@ -24,8 +27,13 @@ public class PublicLocalClientHandler extends SimpleChannelInboundHandler<byte[]
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        if (comSatChannel != null)
-            comSatChannel.disconnect();
+//        if (comSatChannel != null) {
+//            try {
+//                comSatChannel.disconnect();
+//                comSatChannel.close();
+//            } catch (Exception e) {
+//            }
+//        }
     }
 
     /**
@@ -38,7 +46,17 @@ public class PublicLocalClientHandler extends SimpleChannelInboundHandler<byte[]
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, byte[] bytes) throws Exception {
         try {
+            log.info("piping bytes from client to comsat");
             comSatChannel.writeAndFlush(bytes).sync();
-        } catch (Exception e) {}
+            ctx.disconnect();
+        } catch (Exception e) {
+        }
     }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        log.warning(String.format("exception in client connection : %s", cause.getMessage()));
+        ctx.disconnect();
+    }
+
 }
