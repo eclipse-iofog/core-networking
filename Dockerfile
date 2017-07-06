@@ -1,6 +1,6 @@
-FROM jeanblanchard/java:jdk-8u77
+FROM alpine:latest
+#FROM hypriot/rpi-alpine-scratch
 
-RUN mkdir /jar-file
-COPY . /jar-file
-
-CMD ["java", "-jar", "/jar-file/core-networking.jar"]
+COPY core-networking /go/bin/
+WORKDIR /go/bin
+CMD ["./core-networking"]
