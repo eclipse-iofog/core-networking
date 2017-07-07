@@ -4,10 +4,10 @@ import (
 	"errors"
 	"github.com/gorilla/websocket"
 	sdk "github.com/iotracks/container-sdk-go"
-	"github.com/iotracks/core-networking/cn"
 	"log"
 	"os"
 	"time"
+	"github.com/iotracks/core-networking-system-container/cn"
 )
 
 var (

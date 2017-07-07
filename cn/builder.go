@@ -26,10 +26,8 @@ type PublicConnectionBuilder struct {
 	readyConnectors chan<- Connector
 }
 
-func newPrivateConnectionBuilder(address, passcode string,
-	hbInterval, hbThreshold time.Duration,
-	tlsConfig *tls.Config,
-	readyConnectors chan<- Connector) ConnectorBuilder {
+func newPrivateConnectionBuilder(address, passcode string, hbInterval, hbThreshold time.Duration,
+	tlsConfig *tls.Config, readyConnectors chan<- Connector) ConnectorBuilder {
 	return &PrivateConnectionBuilder{
 		address:         address,
 		passcode:        passcode,
@@ -40,8 +38,7 @@ func newPrivateConnectionBuilder(address, passcode string,
 	}
 }
 
-func newPublicConnectionBuilder(address, remoteAddress, passcode string,
-	hbInterval, hbThreshold time.Duration,
+func newPublicConnectionBuilder(address, remoteAddress, passcode string, hbInterval, hbThreshold time.Duration,
 	tlsConfig *tls.Config) ConnectorBuilder {
 	return &PublicConnectionBuilder{
 		address:       address,

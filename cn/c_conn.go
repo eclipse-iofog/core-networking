@@ -60,7 +60,7 @@ func (c *ContainerConn) Start() {
 	done := make(chan byte)
 	defer close(done)
 	c.monitor = newConnMonitor(c.id+600, c.conn, errChannel, done)
-	c.monitor.Monitor()
+	c.monitor.monitor()
 	go c.write(errChannel, done)
 	go c.read(errChannel, done)
 	select {

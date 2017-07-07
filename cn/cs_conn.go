@@ -89,7 +89,7 @@ func (c *ComSatConn) Connect() {
 				errChannel := make(chan error, 3)
 				done := make(chan byte)
 				c.monitor = newConnMonitor(c.id, conn, errChannel, done)
-				c.monitor.Monitor()
+				c.monitor.monitor()
 				c.isConnected = true
 				c.lastActivityTime = time.Now()
 				go c.write(errChannel, done)

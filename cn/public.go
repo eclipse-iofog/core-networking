@@ -46,16 +46,13 @@ func (p *PublicConnection) Reconnect() {
 }
 
 func (p *PublicConnection) proxy(done <-chan byte, reconnect chan byte) {
-	logger.Printf("[ PublicConnection #%d ] proxy goroutine started", p.id)
+	//logger.Printf("[ PublicConnection #%d ] proxy goroutine started", p.id)
 	defer logger.Printf("[ PublicConnection #%d ] proxy goroutine exited", p.id)
 	for {
-		//logger.Printf("[ PublicConnection #%d ] proxy goroutine in cycle", p.id)
 		select {
 		case <-done:
-			//logger.Printf("[ PublicConnection #%d ] proxy goroutine done", p.id)
 			return
 		case data, ok := <-p.containerConn.out:
-			//logger.Printf("[ PublicConnection #%d ] proxy goroutine out", p.id)
 			if !ok {
 				close(reconnect)
 				return
@@ -92,7 +89,6 @@ func (p *PublicConnection) readConnection(done <-chan byte) {
 			}
 			logger.Printf("[ PublicConnection #%d ] Going to send %s to container.\n", p.id, data)
 			p.containerConn.in <- data
-			//logger.Printf("[ PublicConnection #%d ] Has sent data to container.\n", p.id)
 		}
 	}
 }

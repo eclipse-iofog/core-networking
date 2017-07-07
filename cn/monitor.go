@@ -26,7 +26,7 @@ func newConnMonitor(id int, conn net.Conn, err chan<- error, done chan byte) *Co
 	}
 }
 
-func (m *ConnMonitor) Monitor() {
+func (m *ConnMonitor) monitor() {
 	go m.write(m.err, m.done)
 	go m.read(m.err, m.done)
 }
