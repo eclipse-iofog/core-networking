@@ -28,7 +28,7 @@ func main() {
 
 	config := new(cn.CNConfig)
 	if err := updateConfig(config); err != nil {
-		logger.Fatalln(clientError.Error())
+		logger.Fatalln(err.Error())
 	}
 
 	if config.Cert == "" {
