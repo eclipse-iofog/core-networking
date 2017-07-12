@@ -42,15 +42,12 @@ func (pool *pool) messagesFromComSat() <-chan *sdk.IoMessage {
 
 func (pool *pool) sendMessagesFromBus(incomingMessages <-chan *sdk.IoMessage) {
 	for msg := range incomingMessages {
-		logger.Println("[ Pool ] Waiting for ready connector")
 		c := <-pool.readyConnectors
-		logger.Println("[ Pool ] Got one ready connector")
 		c.(*PrivateConnection).inMessage <- msg
 	}
 }
 func (pool *pool) sendMessagesToBus(ioFogClient *sdk.IoFogClient) {
 	for msg := range pool.messagesFromComSat() {
-		logger.Printf("[ Pool ] Writing to message socket %v\n", msg)
 		ioFogClient.SendMessageViaSocket(msg)
 	}
 }

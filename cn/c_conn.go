@@ -26,13 +26,10 @@ func newContainerConn(id int, address string) *ContainerConn {
 }
 
 func (c *ContainerConn) Connect() error {
-	logger.Printf("[ ContainerConnection #%d ] started\n", c.id)
 	var err error
-	logger.Printf("[ ContainerConnection #%d ] before dial %s\n", c.id, c.address)
+	logger.Printf("[ ContainerConnection #%d ] Going to dial container\n", c.id)
 	c.conn, err = net.Dial("tcp", c.address)
-	logger.Printf("[ ContainerConnection #%d ] after dial %s\n", c.id, c.address)
 	if err != nil {
-		logger.Printf("[ ContainerConnection #%d ] Error when dialing container: %s\n", c.id, err.Error())
 		return err
 	}
 	logger.Printf("[ ContainerConnection #%d ] Connected to container\n", c.id)
@@ -72,7 +69,6 @@ func (c *ContainerConn) Start() {
 }
 
 func (c *ContainerConn) write(errChannel chan<- error, done <-chan byte) {
-	defer logger.Printf("[ ContainerConnection #%d ] write goroutine exited\n", c.id)
 	for {
 		select {
 		case <-done:
@@ -84,7 +80,6 @@ func (c *ContainerConn) write(errChannel chan<- error, done <-chan byte) {
 }
 
 func (c *ContainerConn) read(errChannel chan<- error, done <-chan byte) {
-	defer logger.Printf("[ ContainerConnection #%d ] read goroutine exited\n", c.id)
 	defer close(c.out)
 	for {
 		select {
@@ -94,7 +89,6 @@ func (c *ContainerConn) read(errChannel chan<- error, done <-chan byte) {
 			if !ok {
 				return
 			}
-			//logger.Printf("[ ContainerConnection #%d ] has read %d bytes\n", c.id, len(data))
 			c.out <- data
 		}
 	}

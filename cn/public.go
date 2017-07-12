@@ -33,21 +33,17 @@ func (p *PublicConnection) Connect() {
 }
 
 func (p *PublicConnection) Disconnect() {
-	logger.Printf("[ PublicConnection #%d ] Disconnecting...", p.id)
 	p.ComSatConn.Disconnect()
 	p.containerConn.Disconnect()
 	p.done <- 0
 }
 
 func (p *PublicConnection) Reconnect() {
-	logger.Printf("[ PublicConnection #%d ] Reconnecting...", p.id)
 	p.Disconnect()
 	go p.Connect()
 }
 
 func (p *PublicConnection) proxy(done <-chan byte, reconnect chan byte) {
-	//logger.Printf("[ PublicConnection #%d ] proxy goroutine started", p.id)
-	defer logger.Printf("[ PublicConnection #%d ] proxy goroutine exited", p.id)
 	for {
 		select {
 		case <-done:
@@ -57,23 +53,19 @@ func (p *PublicConnection) proxy(done <-chan byte, reconnect chan byte) {
 				close(reconnect)
 				return
 			}
-			n := len(data)
-			logger.Printf("[ PublicConnection #%d ] Successfully read container's intermediate: %d\n", p.id, n)
 			p.in <- data
 		}
 	}
 }
 
 func (p *PublicConnection) readConnection(done <-chan byte) {
-	//logger.Printf("[ PublicConnection #%d ] read goroutine started", p.id)
-	defer logger.Printf("[ PublicConnection #%d ] read goroutine exited", p.id)
 	reconnect := make(chan byte)
 	for {
 		select {
 		case <-done:
 			return
 		case <-reconnect:
-			logger.Printf("[ PublicConnection #%d ] Have to reconnect.", p.id)
+			logger.Printf("[ PublicConnection #%d ] Have to reconnect to ComSat\n", p.id)
 			p.Reconnect()
 			return
 		case data := <-p.out:
@@ -87,7 +79,6 @@ func (p *PublicConnection) readConnection(done <-chan byte) {
 					go p.proxy(done, reconnect)
 				}
 			}
-			logger.Printf("[ PublicConnection #%d ] Going to send %s to container.\n", p.id, data)
 			p.containerConn.in <- data
 		}
 	}

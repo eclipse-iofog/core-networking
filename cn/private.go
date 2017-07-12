@@ -54,8 +54,6 @@ func (p *PrivateConnection) Disconnect() {
 }
 
 func (p *PrivateConnection) monitorMessageDelivery(done <-chan byte) {
-	logger.Printf("[ PrivateConnection #%d ] msg monitor goroutine started. isBusy = %t\n", p.id, p.bytesToSend != nil)
-	defer logger.Printf("[ PrivateConnection #%d ] msg monitor goroutine exited. isBusy = %t\n", p.id, p.bytesToSend != nil)
 	if p.bytesToSend != nil {
 		p.pushMessageBytes()
 		p.newMsgChannel <- 0
@@ -68,16 +66,13 @@ func (p *PrivateConnection) monitorMessageDelivery(done <-chan byte) {
 		}
 		attempt := uint(0)
 		timer := time.NewTimer(RETRY_SEND_TIMEOUT)
-		logger.Printf("[ PrivateConnection #%d ] Has sent message\n", p.id)
 	inner:
 		for {
 			select {
 			case <-p.ackChannel:
-				logger.Printf("[ PrivateConnection #%d ] Has sent message successfully\n", p.id)
 				timer.Stop()
 				break inner
 			case <-timer.C:
-				logger.Printf("[ PrivateConnection #%d ] Retrying to send message\n", p.id)
 				if attempt < SEND_ATTEMPT_LIMIT {
 					attempt++
 				} else {
@@ -97,12 +92,9 @@ func (p *PrivateConnection) monitorMessageDelivery(done <-chan byte) {
 }
 
 func (p *PrivateConnection) writeConnection(done <-chan byte) {
-	logger.Printf("[ PrivateConnection #%d ] write goroutine started\n", p.id)
-	defer logger.Printf("[ PrivateConnection #%d ] write goroutine exited\n", p.id)
 	for {
 		select {
 		case msg := <-p.inMessage:
-			logger.Printf("[ PrivateConnection #%d ] got message to write\n", p.id)
 			if bytes, err := sdk.PrepareMessageForSendingViaSocket(msg); err != nil {
 				logger.Printf("[ PrivateConnection #%d ] Error while encoding message: %s\n", p.id, err.Error())
 			} else {
@@ -117,8 +109,6 @@ func (p *PrivateConnection) writeConnection(done <-chan byte) {
 }
 
 func (p *PrivateConnection) readConnection(done <-chan byte) {
-	logger.Printf("[ PrivateConnection #%d ] read goroutine started\n", p.id)
-	defer logger.Printf("[ PrivateConnection #%d ] read goroutine exited\n", p.id)
 	b := make([]byte, 0, MAX_READ_BUFFER_SIZE)
 	isBroken := false
 	for {
@@ -126,16 +116,12 @@ func (p *PrivateConnection) readConnection(done <-chan byte) {
 		case <-done:
 			return
 		case data := <-p.out:
-			logger.Printf("[ PrivateConnection #%d ] Has read %d bytes %v\n", p.id, len(data), data)
 			switch string(data) {
 			case ACK:
 				p.ackChannel <- 0
 			case TXEND:
-				logger.Printf("[ PrivateConnection #%d ] Sending ACK...\n", p.id)
 				p.in <- []byte(ACK)
-				logger.Printf("[ PrivateConnection #%d ] Has sent ACK\n", p.id)
 				if !isBroken {
-					logger.Printf("[ PrivateConnection #%d ] Going to parse %s\n", p.id, b)
 					if msg, err := sdk.GetMessageReceivedViaSocket(b); err != nil {
 						logger.Printf("[ PrivateConnection #%d ] Error while decoding message: %s", p.id, err.Error())
 					} else {

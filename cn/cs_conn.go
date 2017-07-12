@@ -43,7 +43,6 @@ func newConn(id int, address, passcode string, hbInterval, hbThreshold time.Dura
 }
 
 func (c *ComSatConn) Connect() {
-	logger.Printf("[ Connection #%d ] started\n", c.id)
 	var conn net.Conn
 	var err error
 	defer func() {
@@ -59,9 +58,8 @@ func (c *ComSatConn) Connect() {
 			logger.Printf("[ Connection #%d ] stopped by demand\n", c.id)
 			return
 		default:
-			logger.Printf("[ Connection #%d ] before dial %s\n", c.id, c.address)
+			logger.Printf("[ Connection #%d ] Going to dial ComSat\n", c.id)
 			conn, err = tls.Dial("tcp", c.address, c.tlsConfig)
-			logger.Printf("[ Connection #%d ] after dial %s\n", c.id, c.address)
 			if err != nil {
 				sleepTime := 1 << attempt * CONNECT_TIMEOUT
 				if attempt < ATTEMPT_LIMIT {
@@ -77,7 +75,6 @@ func (c *ComSatConn) Connect() {
 					logger.Printf("[ Connection #%d ] Error while authorizing: %s\n", c.id, err.Error())
 				}
 				if c.notSent != nil {
-					logger.Printf("[ Connection #%d ] Retrying to send data\n", c.id)
 					if _, err := conn.Write(c.notSent); err != nil {
 						logger.Printf("[ Connection #%d ] Error when retrying to send data: %s\n",
 							c.id, err.Error())
@@ -107,7 +104,6 @@ func (c *ComSatConn) Connect() {
 				c.isConnected = false
 				conn.Close()
 				c.notSent = c.monitor.notSent
-				logger.Printf("[ Connection #%d ] Will send on next connect: %s\n", c.id, c.notSent)
 			}
 		}
 	}
@@ -132,7 +128,6 @@ func (c *ComSatConn) authorize(conn net.Conn) error {
 }
 
 func (c *ComSatConn) monitorLastActivityTime(errChannel chan<- error, done <-chan byte) {
-	defer logger.Printf("[ Connection #%d ] lat monitor goroutine exited\n", c.id)
 	hbTicker := time.NewTicker(c.hbThreshold)
 	defer hbTicker.Stop()
 	for {
@@ -152,7 +147,6 @@ func (c *ComSatConn) monitorLastActivityTime(errChannel chan<- error, done <-cha
 }
 
 func (c *ComSatConn) write(errChannel chan<- error, done <-chan byte) {
-	defer logger.Printf("[ Connection #%d ] write goroutine exited\n", c.id)
 	hbTicker := time.NewTicker(c.hbInterval)
 	defer hbTicker.Stop()
 	for {
@@ -168,7 +162,6 @@ func (c *ComSatConn) write(errChannel chan<- error, done <-chan byte) {
 }
 
 func (c *ComSatConn) read(errChannel chan<- error, done <-chan byte) {
-	defer logger.Printf("[ Connection #%d ] read goroutine exited\n", c.id)
 	for {
 		select {
 		case <-done:
@@ -184,7 +177,6 @@ func (c *ComSatConn) read(errChannel chan<- error, done <-chan byte) {
 			case BEAT:
 			case DOUBLE_BEAT:
 			default:
-				logger.Printf("[ Connection #%d ] has read %s\n", c.id, data)
 				c.out <- data
 			}
 		}

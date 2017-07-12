@@ -32,27 +32,21 @@ func (m *ConnMonitor) monitor() {
 }
 
 func (m *ConnMonitor) write(errChannel chan<- error, done <-chan byte) {
-	logger.Printf("[ Monitoring #%d ] write goroutine started\n", m.id)
-	defer logger.Printf("[ Monitoring #%d ] write goroutine exited\n", m.id)
 	for {
 		select {
 		case <-done:
 			return
 		case data := <-m.in:
-			if n, err := m.conn.Write(data); err != nil {
+			if _, err := m.conn.Write(data); err != nil {
 				m.notSent = data
 				errChannel <- err
 				return
-			} else {
-				logger.Printf("[ Monitoring #%d ] Has wrote %d bytes\n", m.id, n)
 			}
 		}
 	}
 }
 
 func (m *ConnMonitor) read(errChannel chan<- error, done <-chan byte) {
-	logger.Printf("[ Monitoring #%d ] read goroutine started\n", m.id)
-	defer logger.Printf("[ Monitoring #%d ] read goroutine exited\n", m.id)
 	defer close(m.out)
 	p := make([]byte, DEFAULT_READ_SIZE)
 	for {
