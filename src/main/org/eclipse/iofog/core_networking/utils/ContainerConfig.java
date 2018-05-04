@@ -1,4 +1,4 @@
-package main.com.iotracks.core_networking.utils;
+package main.org.eclipse.iofog.core_networking.utils;
 
 import javax.json.JsonObject;
 

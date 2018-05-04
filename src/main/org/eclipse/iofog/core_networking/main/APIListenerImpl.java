@@ -1,9 +1,9 @@
-package main.com.iotracks.core_networking.main;
+package main.org.eclipse.iofog.core_networking.main;
 
 import com.iotracks.api.listener.IOFabricAPIListener;
 import com.iotracks.elements.IOMessage;
-import main.com.iotracks.core_networking.utils.ContainerConfig;
-import main.com.iotracks.core_networking.utils.MessageRepository;
+import main.org.eclipse.iofog.core_networking.utils.ContainerConfig;
+import main.org.eclipse.iofog.core_networking.utils.MessageRepository;
 
 import javax.json.JsonObject;
 import java.util.List;

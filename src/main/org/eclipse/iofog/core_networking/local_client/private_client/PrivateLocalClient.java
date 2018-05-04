@@ -1,11 +1,11 @@
-package main.com.iotracks.core_networking.local_client.private_client;
+package main.org.eclipse.iofog.core_networking.local_client.private_client;
 
 import com.iotracks.elements.IOMessage;
 import io.netty.channel.Channel;
-import main.com.iotracks.core_networking.local_client.LocalClient;
-import main.com.iotracks.core_networking.main.CoreNetworking;
-import main.com.iotracks.core_networking.utils.Constants;
-import main.com.iotracks.core_networking.utils.MessageRepository;
+import main.org.eclipse.iofog.core_networking.local_client.LocalClient;
+import main.org.eclipse.iofog.core_networking.main.CoreNetworking;
+import main.org.eclipse.iofog.core_networking.utils.Constants;
+import main.org.eclipse.iofog.core_networking.utils.MessageRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.util.logging.Logger;
