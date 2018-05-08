@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/gorilla/websocket"
 	sdk "github.com/ioFog/iofog-go-sdk"
-	"./cn"
+	"github.com/ioFog/core-networking/cn"
 	"log"
 	"os"
 	"time"
