@@ -1,9 +1,9 @@
-package main.org.eclipse.iofog.core_networking.local_client;
+package org.eclipse.iofog.core_networking.local_client;
 
 import io.netty.channel.Channel;
-import main.org.eclipse.iofog.core_networking.local_client.private_client.PrivateLocalClient;
-import main.org.eclipse.iofog.core_networking.local_client.public_client.PublicLocalClient;
-import main.org.eclipse.iofog.core_networking.main.CoreNetworking;
+import org.eclipse.iofog.core_networking.local_client.private_client.PrivateLocalClient;
+import org.eclipse.iofog.core_networking.local_client.public_client.PublicLocalClient;
+import org.eclipse.iofog.core_networking.main.CoreNetworking;
 
 /**
  * builder class to build private/public local clients

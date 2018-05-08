@@ -1,9 +1,9 @@
-package main.org.eclipse.iofog.core_networking.comsat_client;
+package org.eclipse.iofog.core_networking.comsat_client;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import main.org.eclipse.iofog.core_networking.local_client.LocalClient;
-import main.org.eclipse.iofog.core_networking.local_client.LocalClientBuilder;
+import org.eclipse.iofog.core_networking.local_client.LocalClient;
+import org.eclipse.iofog.core_networking.local_client.LocalClientBuilder;
 
 import java.util.logging.Logger;
 

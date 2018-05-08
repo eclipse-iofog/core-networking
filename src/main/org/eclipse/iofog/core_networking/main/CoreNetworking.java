@@ -1,14 +1,14 @@
-package main.org.eclipse.iofog.core_networking.main;
+package org.eclipse.iofog.core_networking.main;
 
-import com.iotracks.api.IOFabricClient;
-import com.iotracks.api.listener.IOFabricAPIListener;
+import org.eclipse.iofog.api.IOFabricClient;
+import org.eclipse.iofog.api.listener.IOFabricAPIListener;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.internal.StringUtil;
-import main.org.eclipse.iofog.core_networking.comsat_client.ComSatClient;
-import main.org.eclipse.iofog.core_networking.comsat_client.ComSatClientThreadFactory;
-import main.org.eclipse.iofog.core_networking.utils.Certificate;
-import main.org.eclipse.iofog.core_networking.utils.ContainerConfig;
+import org.eclipse.iofog.core_networking.comsat_client.ComSatClient;
+import org.eclipse.iofog.core_networking.comsat_client.ComSatClientThreadFactory;
+import org.eclipse.iofog.core_networking.utils.Certificate;
+import org.eclipse.iofog.core_networking.utils.ContainerConfig;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
