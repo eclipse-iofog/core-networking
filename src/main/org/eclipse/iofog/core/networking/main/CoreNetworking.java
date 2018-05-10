@@ -1,14 +1,14 @@
-package main.com.iotracks.core_networking.main;
+package org.eclipse.iofog.core.networking.main;
 
-import com.iotracks.api.IOFabricClient;
-import com.iotracks.api.listener.IOFabricAPIListener;
+import org.eclipse.iofog.core.networking.comsat.client.ComSatClient;
+import org.eclipse.iofog.core.networking.comsat.client.ComSatClientThreadFactory;
+import org.eclipse.iofog.api.IOFogClient;
+import org.eclipse.iofog.api.listener.IOFogAPIListener;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.internal.StringUtil;
-import main.com.iotracks.core_networking.comsat_client.ComSatClient;
-import main.com.iotracks.core_networking.comsat_client.ComSatClientThreadFactory;
-import main.com.iotracks.core_networking.utils.Certificate;
-import main.com.iotracks.core_networking.utils.ContainerConfig;
+import org.eclipse.iofog.core.networking.utils.Certificate;
+import org.eclipse.iofog.core.networking.utils.ContainerConfig;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
@@ -20,13 +20,13 @@ public class CoreNetworking {
 
     public static ContainerConfig config = null;
     public static String containerId = "";
-    public static IOFabricClient ioFabricClient;
+    public static IOFogClient ioFogClient;
 
     private final Logger log = Logger.getLogger(CoreNetworking.class.getName());
     private ComSatClient[] connections;
     private Certificate cert;
     private boolean connecting;
-    private IOFabricAPIListener listener;
+    private IOFogAPIListener listener;
     private SslContext sslCtx;
     private Object fetchConfigLock = new Object();
 
@@ -92,7 +92,7 @@ public class CoreNetworking {
     private void start() {
         if (config.getMode().equals("private")) {
             try {
-                ioFabricClient.openMessageWebSocket(listener);
+                ioFogClient.openMessageWebSocket(listener);
             } catch (Exception e) {
                 log.warning("unable to open message websocket");
                 log.warning(e.getMessage());
@@ -122,20 +122,20 @@ public class CoreNetworking {
     private void init() {
         getCertificate();
 
-        String ioFabricHost = System.getProperty("iofabric_host", "iofabric");
-        int ioFabricPort = 54321;
+        String ioFogHost = System.getProperty("iofog_host", "iofog");
+        int ioFogPort = 54321;
         try {
-            ioFabricPort = Integer.parseInt(System.getProperty("iofabric_port", "54321"));
+            ioFogPort = Integer.parseInt(System.getProperty("iofog_port", "54321"));
         } catch (Exception e) {
         }
 
-        ioFabricClient = new IOFabricClient(ioFabricHost, ioFabricPort, CoreNetworking.containerId);
+        ioFogClient = new IOFogClient(ioFogHost, ioFogPort, CoreNetworking.containerId);
         listener = new APIListenerImpl(this);
 
         fetchConfig();
 
         try {
-            ioFabricClient.openControlWebSocket(listener);
+            ioFogClient.openControlWebSocket(listener);
         } catch (Exception e) {
             log.warning("unable to open control websocket");
             log.warning(e.getMessage());
@@ -167,7 +167,7 @@ public class CoreNetworking {
         config = null;
         try {
             while (config == null) {
-                ioFabricClient.fetchContainerConfig(listener);
+                ioFogClient.fetchContainerConfig(listener);
                 synchronized (fetchConfigLock) {
                     fetchConfigLock.wait(1000);
                 }
@@ -192,7 +192,7 @@ public class CoreNetworking {
             log.info("new config received");
             fetchConfig();
             closeAllConnections();
-            ioFabricClient.openControlWebSocket(listener);
+            ioFogClient.openControlWebSocket(listener);
             start();
         } catch (Exception e) {
         }

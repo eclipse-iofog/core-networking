@@ -1,9 +1,9 @@
-package main.com.iotracks.core_networking.main;
+package org.eclipse.iofog.core.networking.main;
 
-import com.iotracks.api.listener.IOFabricAPIListener;
-import com.iotracks.elements.IOMessage;
-import main.com.iotracks.core_networking.utils.ContainerConfig;
-import main.com.iotracks.core_networking.utils.MessageRepository;
+import org.eclipse.iofog.api.listener.IOFogAPIListener;
+import org.eclipse.iofog.elements.IOMessage;
+import org.eclipse.iofog.core.networking.utils.ContainerConfig;
+import org.eclipse.iofog.core.networking.utils.MessageRepository;
 
 import javax.json.JsonObject;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * <p>
  * Created by saeid on 4/8/16.
  */
-public class APIListenerImpl implements IOFabricAPIListener {
+public class APIListenerImpl implements IOFogAPIListener {
 
     private final Logger log = Logger.getLogger(APIListenerImpl.class.getName());
     private final CoreNetworking coreNetworking;

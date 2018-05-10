@@ -1,4 +1,4 @@
-package main.com.iotracks.core_networking.local_client;
+package org.eclipse.iofog.core.networking.local.client;
 
 /**
  * interface for private and public modes

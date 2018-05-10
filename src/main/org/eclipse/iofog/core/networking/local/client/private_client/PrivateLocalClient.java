@@ -1,11 +1,11 @@
-package main.com.iotracks.core_networking.local_client.private_client;
+package org.eclipse.iofog.core.networking.local.client.private_client;
 
-import com.iotracks.elements.IOMessage;
+import org.eclipse.iofog.core.networking.local.client.LocalClient;
+import org.eclipse.iofog.elements.IOMessage;
 import io.netty.channel.Channel;
-import main.com.iotracks.core_networking.local_client.LocalClient;
-import main.com.iotracks.core_networking.main.CoreNetworking;
-import main.com.iotracks.core_networking.utils.Constants;
-import main.com.iotracks.core_networking.utils.MessageRepository;
+import org.eclipse.iofog.core.networking.main.CoreNetworking;
+import org.eclipse.iofog.core.networking.utils.Constants;
+import org.eclipse.iofog.core.networking.utils.MessageRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.util.logging.Logger;
@@ -75,7 +75,7 @@ public class PrivateLocalClient implements LocalClient {
                     log.info("TXEND received");
                     IOMessage ioMessage = new IOMessage(buffer.toByteArray());
                     log.info("sending message to websocket");
-                    CoreNetworking.ioFabricClient.sendMessageToWebSocket(ioMessage);
+                    CoreNetworking.ioFogClient.sendMessageToWebSocket(ioMessage);
                     buffer.reset();
                     log.info("sending ACK to comsat");
                     comSatChannel.writeAndFlush(Constants.ACK).sync();

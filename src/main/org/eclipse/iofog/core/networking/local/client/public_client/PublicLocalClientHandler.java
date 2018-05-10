@@ -1,4 +1,4 @@
-package main.com.iotracks.core_networking.local_client.public_client;
+package org.eclipse.iofog.core.networking.local.client.public_client;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;

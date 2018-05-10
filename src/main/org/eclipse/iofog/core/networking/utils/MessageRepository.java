@@ -1,6 +1,6 @@
-package main.com.iotracks.core_networking.utils;
+package org.eclipse.iofog.core.networking.utils;
 
-import com.iotracks.elements.IOMessage;
+import org.eclipse.iofog.elements.IOMessage;
 
 import java.util.LinkedList;
 import java.util.Queue;

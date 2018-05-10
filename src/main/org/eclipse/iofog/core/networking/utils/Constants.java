@@ -1,4 +1,4 @@
-package main.com.iotracks.core_networking.utils;
+package org.eclipse.iofog.core.networking.utils;
 
 import io.netty.util.CharsetUtil;
 

@@ -1,9 +1,9 @@
-package main.com.iotracks.core_networking.local_client;
+package org.eclipse.iofog.core.networking.local.client;
 
 import io.netty.channel.Channel;
-import main.com.iotracks.core_networking.local_client.private_client.PrivateLocalClient;
-import main.com.iotracks.core_networking.local_client.public_client.PublicLocalClient;
-import main.com.iotracks.core_networking.main.CoreNetworking;
+import org.eclipse.iofog.core.networking.local.client.private_client.PrivateLocalClient;
+import org.eclipse.iofog.core.networking.local.client.public_client.PublicLocalClient;
+import org.eclipse.iofog.core.networking.main.CoreNetworking;
 
 /**
  * builder class to build private/public local clients
