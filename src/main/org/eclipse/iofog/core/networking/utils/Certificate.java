@@ -1,4 +1,4 @@
-package org.eclipse.iofog.core_networking.utils;
+package org.eclipse.iofog.core.networking.utils;
 
 import java.io.FileInputStream;
 import java.security.cert.CertificateFactory;

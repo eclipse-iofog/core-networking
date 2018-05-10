@@ -1,4 +1,4 @@
-package org.eclipse.iofog.core_networking.comsat_client;
+package org.eclipse.iofog.core.networking.comsat.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -10,8 +10,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.bytes.ByteArrayDecoder;
 import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.ssl.SslContext;
-import org.eclipse.iofog.core_networking.main.CoreNetworking;
-import org.eclipse.iofog.core_networking.utils.Constants;
+import org.eclipse.iofog.core.networking.main.CoreNetworking;
+import org.eclipse.iofog.core.networking.utils.Constants;
 
 import java.util.logging.Logger;
 

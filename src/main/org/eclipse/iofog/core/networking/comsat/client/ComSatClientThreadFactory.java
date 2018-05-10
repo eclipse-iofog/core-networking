@@ -1,4 +1,4 @@
-package org.eclipse.iofog.core_networking.comsat_client;
+package org.eclipse.iofog.core.networking.comsat.client;
 
 import java.util.concurrent.ThreadFactory;
 
