@@ -2,6 +2,7 @@ package cn
 
 import (
 	sdk "github.com/ioFog/iofog-go-sdk"
+	"fmt"
 )
 
 type pool struct {
@@ -42,12 +43,14 @@ func (pool *pool) messagesFromComSat() <-chan *sdk.IoMessage {
 
 func (pool *pool) sendMessagesFromBus(incomingMessages <-chan *sdk.IoMessage) {
 	for msg := range incomingMessages {
+		fmt.Printf("Got new message from IoFog bus: %+v\n", msg)
 		c := <-pool.readyConnectors
 		c.(*PrivateConnection).inMessage <- msg
 	}
 }
 func (pool *pool) sendMessagesToBus(ioFogClient *sdk.IoFogClient) {
 	for msg := range pool.messagesFromComSat() {
+		fmt.Printf("Got new message from Comsat: %+v\n", msg)
 		ioFogClient.SendMessageViaSocket(msg)
 	}
 }

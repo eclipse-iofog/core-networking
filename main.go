@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"github.com/gorilla/websocket"
-	sdk "github.com/ioFog/iofog-go-sdk"
 	"github.com/ioFog/core-networking/cn"
+	sdk "github.com/ioFog/iofog-go-sdk"
 	"log"
 	"os"
 	"time"
