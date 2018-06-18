@@ -89,7 +89,6 @@ func (p *PrivateConnection) readConnection(done <-chan byte) {
 				if len(start) != 0 {
 					addToBuffer(start)
 				}
-
 				if !isBroken {
 					if msg, err := sdk.GetMessageReceivedViaSocket(b); err != nil {
 						logger.Printf("[ PrivateConnection #%d ] Error while decoding message: %s", p.id, err.Error())
