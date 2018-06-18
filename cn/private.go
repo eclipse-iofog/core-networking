@@ -1,3 +1,13 @@
+/********************************************************************************
+ * Copyright (c) 2018 Edgeworx, Inc.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ ********************************************************************************/
+
 package cn
 
 import (
@@ -11,19 +21,19 @@ type PrivateConnection struct {
 
 	inMessage  chan *sdk.IoMessage
 	outMessage chan *sdk.IoMessage
-	readyConn  chan <- Connector
+	readyConn  chan<- Connector
 }
 
 func newPrivateConnection(id int,
-address, passcode string,
-hbInterval, hbThreshold time.Duration,
-tlsConfig *tls.Config,
-ready chan <- Connector) *PrivateConnection {
+	address, passcode string,
+	hbInterval, hbThreshold time.Duration,
+	tlsConfig *tls.Config,
+	ready chan<- Connector) *PrivateConnection {
 	return &PrivateConnection{
-		ComSatConn:    newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig),
-		inMessage:     make(chan *sdk.IoMessage, READ_CHANNEL_BUFFER_SIZE),
-		outMessage:    make(chan *sdk.IoMessage, WRITE_CHANNEL_BUFFER_SIZE),
-		readyConn:     ready,
+		ComSatConn: newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig),
+		inMessage:  make(chan *sdk.IoMessage, READ_CHANNEL_BUFFER_SIZE),
+		outMessage: make(chan *sdk.IoMessage, WRITE_CHANNEL_BUFFER_SIZE),
+		readyConn:  ready,
 	}
 }
 
@@ -66,13 +76,29 @@ func (p *PrivateConnection) writeConnection(done <-chan byte) {
 func (p *PrivateConnection) readConnection(done <-chan byte) {
 	b := make([]byte, 0, MAX_READ_BUFFER_SIZE)
 	isBroken := false
+	addToBuffer := func(bytes []byte) {
+		if len(b)+len(bytes) <= MAX_READ_BUFFER_SIZE {
+			b = append(b, bytes...)
+		} else {
+			isBroken = true
+		}
+	}
 	for {
 		select {
 		case <-done:
 			return
 		case data := <-p.out:
-			switch string(data) {
+			end := make([]byte, 5) // TXEND message is 5 bytes long
+			size := len(data)
+			if size >= 5 {
+				end = data[size-5:]
+			}
+			switch string(end) {
 			case TXEND:
+				start := data[:size-5]
+				if len(start) != 0 {
+					addToBuffer(start)
+				}
 				if !isBroken {
 					if msg, err := sdk.GetMessageReceivedViaSocket(b); err != nil {
 						logger.Printf("[ PrivateConnection #%d ] Error while decoding message: %s", p.id, err.Error())
@@ -83,11 +109,7 @@ func (p *PrivateConnection) readConnection(done <-chan byte) {
 				b = b[:0]
 				isBroken = false
 			default:
-				if len(b) + len(data) <= MAX_READ_BUFFER_SIZE {
-					b = append(b, data...)
-				} else {
-					isBroken = true
-				}
+				addToBuffer(data)
 			}
 		}
 	}

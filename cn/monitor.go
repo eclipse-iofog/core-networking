@@ -1,7 +1,18 @@
+/********************************************************************************
+ * Copyright (c) 2018 Edgeworx, Inc.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ ********************************************************************************/
+
 package cn
 
 import (
 	"net"
+	"fmt"
 )
 
 type ConnMonitor struct {
@@ -37,6 +48,7 @@ func (m *ConnMonitor) write(errChannel chan<- error, done <-chan byte) {
 		case <-done:
 			return
 		case data := <-m.in:
+			fmt.Printf("Writing new message to comsat ws: %+q\n", string(data))
 			if _, err := m.conn.Write(data); err != nil {
 				m.notSent = data
 				errChannel <- err
