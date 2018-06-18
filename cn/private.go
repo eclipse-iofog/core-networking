@@ -54,6 +54,7 @@ func (p *PrivateConnection) writeConnection(done <-chan byte) {
 				logger.Printf("[ PrivateConnection #%d ] Error while encoding message: %s\n", p.id, err.Error())
 			} else {
 				p.in <- bytes
+				time.Sleep(20*time.Millisecond)
 				p.in <- []byte(TXEND)
 			}
 			p.readyConn <- p
