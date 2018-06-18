@@ -54,7 +54,6 @@ func (p *PrivateConnection) writeConnection(done <-chan byte) {
 				logger.Printf("[ PrivateConnection #%d ] Error while encoding message: %s\n", p.id, err.Error())
 			} else {
 				p.in <- bytes
-				time.Sleep(100*time.Millisecond)
 				p.in <- []byte(TXEND)
 			}
 			p.readyConn <- p
@@ -72,7 +71,13 @@ func (p *PrivateConnection) readConnection(done <-chan byte) {
 		case <-done:
 			return
 		case data := <-p.out:
-			switch string(data) {
+			end := make([]byte, 5) //size of TXEND is 5 bytes
+			if bSize := len(data); bSize >= 5 {
+				end = data[bSize - 5:]
+			} else {
+				end = data
+			}
+			switch string(end) {
 			case TXEND:
 				if !isBroken {
 					if msg, err := sdk.GetMessageReceivedViaSocket(b); err != nil {
