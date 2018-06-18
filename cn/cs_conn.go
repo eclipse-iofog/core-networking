@@ -177,6 +177,7 @@ func (c *ComSatConn) read(errChannel chan<- error, done <-chan byte) {
 			case BEAT:
 			case DOUBLE_BEAT:
 			default:
+				fmt.Printf("Got new message from comsat ws: %q\n", data)
 				c.out <- data
 			}
 		}
