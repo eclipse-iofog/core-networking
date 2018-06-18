@@ -2,6 +2,7 @@ package cn
 
 import (
 	"net"
+	"fmt"
 )
 
 type ConnMonitor struct {
@@ -37,6 +38,7 @@ func (m *ConnMonitor) write(errChannel chan<- error, done <-chan byte) {
 		case <-done:
 			return
 		case data := <-m.in:
+			fmt.Printf("Writing new message to comsat ws: %+q\n", string(data))
 			if _, err := m.conn.Write(data); err != nil {
 				m.notSent = data
 				errChannel <- err
