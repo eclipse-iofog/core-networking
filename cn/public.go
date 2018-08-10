@@ -31,36 +31,32 @@ func newPublicConnection(id int,
 }
 
 func (p *PublicConnection) Connect() {
+	reconnect := make(chan byte)
+	defer func() {
+		close(reconnect)
+	}()
 	go p.ComSatConn.Connect()
-	done := make(chan byte)
-	go p.readConnection(done)
-	select {
-	case <-p.done:
-		logger.Printf("[ PublicConnection #%d ] Stopped by demand", p.id)
-		close(done)
-		return
+	go p.readConnection(reconnect)
+
+	for {
+		select {
+		case <-reconnect:
+			go p.readConnection(reconnect)
+		}
 	}
 }
 
 func (p *PublicConnection) Disconnect() {
 	p.ComSatConn.Disconnect()
 	p.containerConn.Disconnect()
-	p.done <- 0
 }
 
-func (p *PublicConnection) Reconnect() {
-	p.Disconnect()
-	go p.Connect()
-}
-
-func (p *PublicConnection) proxy(done <-chan byte, reconnect chan byte) {
+func (p *PublicConnection) proxy(done chan byte) {
 	for {
 		select {
-		case <-done:
-			return
 		case data, ok := <-p.containerConn.out:
 			if !ok {
-				close(reconnect)
+				done <- 0
 				return
 			}
 			p.in <- data
@@ -68,15 +64,10 @@ func (p *PublicConnection) proxy(done <-chan byte, reconnect chan byte) {
 	}
 }
 
-func (p *PublicConnection) readConnection(done <-chan byte) {
-	reconnect := make(chan byte)
+func (p *PublicConnection) readConnection(done chan byte) {
 	for {
 		select {
 		case <-done:
-			return
-		case <-reconnect:
-			logger.Printf("[ PublicConnection #%d ] Have to reconnect to ComSat\n", p.id)
-			p.Reconnect()
 			return
 		case data := <-p.out:
 			if !p.containerConn.isConnected {
@@ -86,7 +77,7 @@ func (p *PublicConnection) readConnection(done <-chan byte) {
 					continue
 				} else {
 					go p.containerConn.Start()
-					go p.proxy(done, reconnect)
+					go p.proxy(done)
 				}
 			}
 			p.containerConn.in <- data

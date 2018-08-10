@@ -65,7 +65,7 @@ func (c *ComSatConn) Connect() {
 	for {
 		select {
 		case <-c.done:
-			logger.Printf("[ Connection #%d ] stopped by demand\n", c.id)
+			logger.Printf("[ Connection #%d ] stopped on demand\n", c.id)
 			return
 		default:
 			logger.Printf("[ Connection #%d ] Going to dial ComSat\n", c.id)
@@ -107,7 +107,7 @@ func (c *ComSatConn) Connect() {
 					logger.Printf("[ Connection #%d ] Error occured: %s\n", c.id, err.Error())
 					close(done)
 				case <-c.done:
-					logger.Printf("[ Connection #%d ] Stopped by demand\n", c.id)
+					logger.Printf("[ Connection #%d ] Stopped on demand\n", c.id)
 					close(done)
 					return
 				}

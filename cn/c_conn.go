@@ -53,19 +53,13 @@ func (c *ContainerConn) Disconnect() {
 }
 
 func (c *ContainerConn) Start() {
-	if c.conn == nil {
-		logger.Printf("[ ContainerConnection #%d ] Unable to start on closed connection\n", c.id)
-	}
-	defer func() {
-		c.isConnected = false
-		if c.conn != nil {
-			c.conn.Close()
-			c.conn = nil
-		}
-	}()
 	errChannel := make(chan error, 3)
 	done := make(chan byte)
-	defer close(done)
+	defer func() {
+		c.Close()
+		close(errChannel)
+		close(done)
+	}()
 	c.monitor = newConnMonitor(c.id+600, c.conn, errChannel, done)
 	c.monitor.monitor()
 	go c.write(errChannel, done)
@@ -74,7 +68,16 @@ func (c *ContainerConn) Start() {
 	case err := <-errChannel:
 		logger.Printf("[ ContainerConnection #%d ] Error occured: %s\n", c.id, err.Error())
 	case <-c.done:
-		logger.Printf("[ ContainerConnection #%d ] Stopped by demand\n", c.id)
+		logger.Printf("[ ContainerConnection #%d ] Stopped on demand\n", c.id)
+	}
+}
+
+func (c *ContainerConn) Close() {
+	logger.Printf("[ ContainerConnection #%d ] Closing container connection\n", c.id)
+	c.isConnected = false
+	if c.conn != nil {
+		c.conn.Close()
+		c.conn = nil
 	}
 }
 

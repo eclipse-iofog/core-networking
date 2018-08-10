@@ -33,7 +33,6 @@ func (pool *pool) start(connectorBuilder ConnectorBuilder) {
 		pool.Connectors[i] = connectorBuilder.Build()
 		go pool.Connectors[i].Connect()
 	}
-
 }
 
 func (pool *pool) messagesFromComSat() <-chan *sdk.IoMessage {
