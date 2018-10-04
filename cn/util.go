@@ -74,5 +74,5 @@ type CNConfig struct {
 	HBFrequency     uint   `json:"heartbeatfrequency"`
 	HBThreshold     uint   `json:"heartbeatabsencethreshold"`
 	Cert            string `json:"cert"`
-	DevMode		    bool   `json:"devmode"`
+	DevMode	        bool   `json:"devmode"`
 }
