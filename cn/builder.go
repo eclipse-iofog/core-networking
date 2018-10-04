@@ -22,6 +22,7 @@ type PrivateConnectionBuilder struct {
 	hbInterval      time.Duration
 	hbThreshold     time.Duration
 	tlsConfig       *tls.Config
+	devMode			bool
 	readyConnectors chan<- Connector
 }
 
@@ -33,23 +34,25 @@ type PublicConnectionBuilder struct {
 	hbInterval      time.Duration
 	hbThreshold     time.Duration
 	tlsConfig       *tls.Config
+	devMode			bool
 	readyConnectors chan<- Connector
 }
 
 func newPrivateConnectionBuilder(address, passcode string, hbInterval, hbThreshold time.Duration,
-	tlsConfig *tls.Config, readyConnectors chan<- Connector) ConnectorBuilder {
+	tlsConfig *tls.Config, devMode bool, readyConnectors chan<- Connector) ConnectorBuilder {
 	return &PrivateConnectionBuilder{
 		address:         address,
 		passcode:        passcode,
 		hbInterval:      hbInterval,
 		hbThreshold:     hbThreshold,
 		tlsConfig:       tlsConfig,
+		devMode:         devMode,
 		readyConnectors: readyConnectors,
 	}
 }
 
 func newPublicConnectionBuilder(address, remoteAddress, passcode string, hbInterval, hbThreshold time.Duration,
-	tlsConfig *tls.Config) ConnectorBuilder {
+	tlsConfig *tls.Config, devMode bool) ConnectorBuilder {
 	return &PublicConnectionBuilder{
 		address:       address,
 		remoteAddress: remoteAddress,
@@ -57,6 +60,7 @@ func newPublicConnectionBuilder(address, remoteAddress, passcode string, hbInter
 		hbInterval:    hbInterval,
 		hbThreshold:   hbThreshold,
 		tlsConfig:     tlsConfig,
+		devMode:	   devMode,
 	}
 }
 
@@ -71,6 +75,7 @@ func (builder *PrivateConnectionBuilder) Build() Connector {
 		builder.hbInterval,
 		builder.hbThreshold,
 		builder.tlsConfig,
+		builder.devMode,
 		builder.readyConnectors,
 	)
 }
@@ -87,5 +92,6 @@ func (builder *PublicConnectionBuilder) Build() Connector {
 		builder.hbInterval,
 		builder.hbThreshold,
 		builder.tlsConfig,
+		builder.devMode,
 	)
 }

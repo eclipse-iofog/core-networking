@@ -53,6 +53,7 @@ func (cn *CoreNetworking) Start() {
 			time.Millisecond*time.Duration(cn.HBFrequency),
 			time.Millisecond*time.Duration(cn.HBThreshold),
 			cn.tlsConfig,
+			cn.DevMode,
 		)
 		cn.pool.start(builder)
 	case MODE_PRIVATE:
@@ -62,6 +63,7 @@ func (cn *CoreNetworking) Start() {
 			time.Millisecond*time.Duration(cn.HBFrequency),
 			time.Millisecond*time.Duration(cn.HBThreshold),
 			cn.tlsConfig,
+			cn.DevMode,
 			cn.pool.readyConnectors,
 		)
 		cn.pool.start(builder)

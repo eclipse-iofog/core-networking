@@ -27,10 +27,10 @@ type PrivateConnection struct {
 func newPrivateConnection(id int,
 	address, passcode string,
 	hbInterval, hbThreshold time.Duration,
-	tlsConfig *tls.Config,
+	tlsConfig *tls.Config, devMode bool,
 	ready chan<- Connector) *PrivateConnection {
 	return &PrivateConnection{
-		ComSatConn: newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig),
+		ComSatConn: newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig, devMode),
 		inMessage:  make(chan *sdk.IoMessage, READ_CHANNEL_BUFFER_SIZE),
 		outMessage: make(chan *sdk.IoMessage, WRITE_CHANNEL_BUFFER_SIZE),
 		readyConn:  ready,

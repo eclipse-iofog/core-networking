@@ -23,9 +23,9 @@ type PublicConnection struct {
 func newPublicConnection(id int,
 	address, remoteAddress, passcode string,
 	hbInterval, hbThreshold time.Duration,
-	tlsConfig *tls.Config) *PublicConnection {
+	tlsConfig *tls.Config, devMode bool) *PublicConnection {
 	return &PublicConnection{
-		ComSatConn:    newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig),
+		ComSatConn:    newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig, devMode),
 		containerConn: newContainerConn(id, remoteAddress),
 	}
 }

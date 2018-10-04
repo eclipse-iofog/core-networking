@@ -27,7 +27,7 @@ type ComSatConn struct {
 	hbInterval       time.Duration
 	hbThreshold      time.Duration
 	tlsConfig        *tls.Config
-
+	devMode			 bool
 	in          chan []byte
 	out         chan []byte
 	done        chan byte
@@ -38,7 +38,7 @@ type ComSatConn struct {
 	latMutex sync.Mutex
 }
 
-func newConn(id int, address, passcode string, hbInterval, hbThreshold time.Duration, tlsConfig *tls.Config) *ComSatConn {
+func newConn(id int, address, passcode string, hbInterval, hbThreshold time.Duration, tlsConfig *tls.Config, devMode bool) *ComSatConn {
 	return &ComSatConn{
 		id:          id,
 		address:     address,
@@ -46,6 +46,7 @@ func newConn(id int, address, passcode string, hbInterval, hbThreshold time.Dura
 		hbInterval:  hbInterval,
 		hbThreshold: hbThreshold,
 		tlsConfig:   tlsConfig,
+		devMode:	 devMode,
 		in:          make(chan []byte, WRITE_CHANNEL_BUFFER_SIZE),
 		out:         make(chan []byte, READ_CHANNEL_BUFFER_SIZE),
 		done:        make(chan byte),
@@ -69,7 +70,11 @@ func (c *ComSatConn) Connect() {
 			return
 		default:
 			logger.Printf("[ Connection #%d ] Going to dial ComSat\n", c.id)
-			conn, err = tls.Dial("tcp", c.address, c.tlsConfig)
+			if c.devMode {
+				conn, err = net.Dial("tcp", c.address)
+			} else {
+				conn, err = tls.Dial("tcp", c.address, c.tlsConfig)
+			}
 			if err != nil {
 				sleepTime := 1 << attempt * CONNECT_TIMEOUT
 				if attempt < ATTEMPT_LIMIT {
