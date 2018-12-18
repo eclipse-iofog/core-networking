@@ -82,27 +82,34 @@ func (c *ContainerConn) Close() {
 }
 
 func (c *ContainerConn) write(errChannel chan<- error, done <-chan byte) {
+	logger.Printf("[ ContainerConnection #%d ] Got into write of container connection\n", c.id)
 	for {
 		select {
 		case <-done:
+			logger.Printf("[ ContainerConnection #%d ] write done\n", c.id)
 			return
 		case data := <-c.in:
 			c.monitor.in <- data
+			logger.Printf("[ ContainerConnection #%d ] sent data to container pipe %s\n", c.id, data)
 		}
 	}
 }
 
 func (c *ContainerConn) read(errChannel chan<- error, done <-chan byte) {
 	defer close(c.out)
+	logger.Printf("[ ContainerConnection #%d ] Got into read of container connection\n", c.id)
 	for {
 		select {
 		case <-done:
+			logger.Printf("[ ContainerConnection #%d ] read done\n", c.id)
 			return
 		case data, ok := <-c.monitor.out:
 			if !ok {
+				logger.Printf("[ ContainerConnection #%d ] read error\n", c.id)
 				return
 			}
 			c.out <- data
+			logger.Printf("[ ContainerConnection #%d ] received data from container pipe %s\n", c.id, data)
 		}
 	}
 }

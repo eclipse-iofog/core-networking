@@ -69,10 +69,11 @@ func (c *ComSatConn) Connect() {
 			logger.Printf("[ Connection #%d ] stopped on demand\n", c.id)
 			return
 		default:
-			logger.Printf("[ Connection #%d ] Going to dial ComSat\n", c.id)
 			if c.devMode {
+				logger.Printf("[ Connection #%d ] Going to dial ComSat in dev mode\n", c.id)
 				conn, err = net.Dial("tcp", c.address)
 			} else {
+				logger.Printf("[ Connection #%d ] Going to dial ComSat\n in regular mode", c.id)
 				conn, err = tls.Dial("tcp", c.address, c.tlsConfig)
 			}
 			if err != nil {
@@ -164,25 +165,31 @@ func (c *ComSatConn) monitorLastActivityTime(errChannel chan<- error, done <-cha
 func (c *ComSatConn) write(errChannel chan<- error, done <-chan byte) {
 	hbTicker := time.NewTicker(c.hbInterval)
 	defer hbTicker.Stop()
+	logger.Printf("[ Connection #%d ] got into write of comsat connection\n", c.id)
 	for {
 		select {
 		case <-done:
+			logger.Printf("[ Connection #%d ] write done\n", c.id)
 			return
 		case <-hbTicker.C:
 			c.monitor.in <- []byte(BEAT)
 		case data := <-c.in:
 			c.monitor.in <- data
+			logger.Printf("[ Connection #%d ] sent data to comsat %s\n", c.id, data)
 		}
 	}
 }
 
 func (c *ComSatConn) read(errChannel chan<- error, done <-chan byte) {
+	logger.Printf("[ Connection #%d ] got into read of comsat connection\n", c.id)
 	for {
 		select {
 		case <-done:
+			logger.Printf("[ Connection #%d ] read done\n", c.id)
 			return
 		case data, ok := <-c.monitor.out:
 			if !ok {
+				logger.Printf("[ Connection #%d ] read error\n", c.id)
 				return
 			}
 			c.latMutex.Lock()
@@ -193,6 +200,7 @@ func (c *ComSatConn) read(errChannel chan<- error, done <-chan byte) {
 			case DOUBLE_BEAT:
 			default:
 				c.out <- data
+				logger.Printf("[ Connection #%d ] received data from comsat %s\n", c.id, data)
 			}
 		}
 	}
