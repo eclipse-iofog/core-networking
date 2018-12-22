@@ -11,6 +11,7 @@
 package cn
 
 import (
+	"github.com/eapache/channels"
 	"net"
 )
 
@@ -18,8 +19,8 @@ type ConnMonitor struct {
 	id   int
 	conn net.Conn
 
-	in      chan []byte
-	out     chan []byte
+	in      *channels.RingChannel
+	out     *channels.RingChannel
 	err     chan<- error
 	done    chan byte
 	notSent []byte
@@ -31,8 +32,8 @@ func newConnMonitor(id int, conn net.Conn, err chan<- error, done chan byte) *Co
 		conn: conn,
 		err:  err,
 		done: done,
-		in:   make(chan []byte, WRITE_CHANNEL_BUFFER_SIZE),
-		out:  make(chan []byte, READ_CHANNEL_BUFFER_SIZE),
+		in:   channels.NewRingChannel(channels.BufferCap(WRITE_CHANNEL_BUFFER_SIZE)),
+		out:  channels.NewRingChannel(channels.BufferCap(READ_CHANNEL_BUFFER_SIZE)),
 	}
 }
 
@@ -46,9 +47,9 @@ func (m *ConnMonitor) write(errChannel chan<- error, done <-chan byte) {
 		select {
 		case <-done:
 			return
-		case data := <-m.in:
-			if _, err := m.conn.Write(data); err != nil {
-				m.notSent = data
+		case data := <-m.in.Out():
+			if _, err := m.conn.Write(data.([]byte)); err != nil {
+				m.notSent = data.([]byte)
 				errChannel <- err
 				return
 			}
@@ -57,7 +58,7 @@ func (m *ConnMonitor) write(errChannel chan<- error, done <-chan byte) {
 }
 
 func (m *ConnMonitor) read(errChannel chan<- error, done <-chan byte) {
-	defer close(m.out)
+	defer m.out.Close()
 	p := make([]byte, DEFAULT_READ_SIZE)
 	for {
 		select {
@@ -71,7 +72,7 @@ func (m *ConnMonitor) read(errChannel chan<- error, done <-chan byte) {
 			}
 			temp := make([]byte, n)
 			copy(temp, p)
-			m.out <- temp
+			m.out.In() <- temp
 		}
 	}
 }

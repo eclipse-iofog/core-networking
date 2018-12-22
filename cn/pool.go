@@ -11,6 +11,7 @@
 package cn
 
 import (
+	"github.com/eapache/channels"
 	sdk "github.com/ioFog/iofog-go-sdk"
 )
 
@@ -35,29 +36,29 @@ func (pool *pool) start(connectorBuilder ConnectorBuilder) {
 	}
 }
 
-func (pool *pool) messagesFromComSat() <-chan *sdk.IoMessage {
-	out := make(chan *sdk.IoMessage, READ_CHANNEL_BUFFER_SIZE*pool.Count)
-	output := func(c <-chan *sdk.IoMessage) {
+func (pool *pool) messagesFromComSat() <-chan interface{} {
+	out := channels.NewRingChannel(channels.BufferCap(READ_CHANNEL_BUFFER_SIZE*pool.Count))
+	output := func(c <-chan interface{}) {
 		for n := range c {
-			out <- n
+			out.In() <- n
 		}
 	}
 	for _, c := range pool.Connectors {
-		go output(c.(*PrivateConnection).outMessage)
+		go output(c.(*PrivateConnection).outMessage.Out())
 	}
 
-	return out
+	return out.Out()
 }
 
-func (pool *pool) sendMessagesFromBus(incomingMessages <-chan *sdk.IoMessage) {
+func (pool *pool) sendMessagesFromBus(incomingMessages <-chan interface{}) {
 	for msg := range incomingMessages {
 		c := <-pool.readyConnectors
-		c.(*PrivateConnection).inMessage <- msg
+		c.(*PrivateConnection).inMessage.In() <- msg
 	}
 }
 func (pool *pool) sendMessagesToBus(ioFogClient *sdk.IoFogClient) {
 	for msg := range pool.messagesFromComSat() {
-		ioFogClient.SendMessageViaSocket(msg)
+		ioFogClient.SendMessageViaSocket(msg.(*sdk.IoMessage))
 	}
 }
 
