@@ -54,12 +54,12 @@ func (p *PublicConnection) Disconnect() {
 func (p *PublicConnection) proxy(done chan byte) {
 	for {
 		select {
-		case data, ok := <-p.containerConn.out:
+		case data, ok := <-p.containerConn.out.Out():
 			if !ok {
 				done <- 0
 				return
 			}
-			p.in <- data
+			p.in.In() <- data
 		}
 	}
 }
@@ -69,7 +69,7 @@ func (p *PublicConnection) readConnection(done chan byte) {
 		select {
 		case <-done:
 			return
-		case data := <-p.out:
+		case data := <-p.out.Out():
 			if !p.containerConn.isConnected {
 				if err := p.containerConn.Connect(); err != nil {
 					logger.Printf("[ PublicConnection #%d ] Error when connecting to container: %s\n",
@@ -80,7 +80,7 @@ func (p *PublicConnection) readConnection(done chan byte) {
 					go p.proxy(done)
 				}
 			}
-			p.containerConn.in <- data
+			p.containerConn.in.In() <- data
 		}
 	}
 }

@@ -11,6 +11,7 @@
 package cn
 
 import (
+	"github.com/eapache/channels"
 	"net"
 )
 
@@ -20,8 +21,8 @@ type ContainerConn struct {
 	monitor *ConnMonitor
 	conn    net.Conn
 
-	in          chan []byte
-	out         chan []byte
+	in          *channels.RingChannel
+	out         *channels.RingChannel
 	done        chan byte
 	isConnected bool
 }
@@ -30,7 +31,7 @@ func newContainerConn(id int, address string) *ContainerConn {
 	return &ContainerConn{
 		id:      id,
 		address: address,
-		in:      make(chan []byte, WRITE_CHANNEL_BUFFER_SIZE),
+		in:      channels.NewRingChannel(channels.BufferCap(WRITE_CHANNEL_BUFFER_SIZE)),
 		done:    make(chan byte),
 	}
 }
@@ -44,7 +45,7 @@ func (c *ContainerConn) Connect() error {
 	}
 	logger.Printf("[ ContainerConnection #%d ] Connected to container\n", c.id)
 	c.isConnected = true
-	c.out = make(chan []byte, READ_CHANNEL_BUFFER_SIZE)
+	c.out = channels.NewRingChannel(channels.BufferCap(READ_CHANNEL_BUFFER_SIZE))
 	return nil
 }
 
@@ -86,23 +87,23 @@ func (c *ContainerConn) write(errChannel chan<- error, done <-chan byte) {
 		select {
 		case <-done:
 			return
-		case data := <-c.in:
-			c.monitor.in <- data
+		case data := <-c.in.Out():
+			c.monitor.in.In() <- data
 		}
 	}
 }
 
 func (c *ContainerConn) read(errChannel chan<- error, done <-chan byte) {
-	defer close(c.out)
+	defer c.out.Close()
 	for {
 		select {
 		case <-done:
 			return
-		case data, ok := <-c.monitor.out:
+		case data, ok := <-c.monitor.out.Out():
 			if !ok {
 				return
 			}
-			c.out <- data
+			c.out.In() <- data
 		}
 	}
 }

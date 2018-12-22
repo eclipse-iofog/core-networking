@@ -14,6 +14,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/eapache/channels"
 	"net"
 	"sync"
 	"time"
@@ -28,8 +29,8 @@ type ComSatConn struct {
 	hbThreshold      time.Duration
 	tlsConfig        *tls.Config
 	devMode			 bool
-	in          chan []byte
-	out         chan []byte
+	in          	 *channels.RingChannel
+	out         	 *channels.RingChannel
 	done        chan byte
 	isConnected bool
 	notSent     []byte
@@ -47,8 +48,8 @@ func newConn(id int, address, passcode string, hbInterval, hbThreshold time.Dura
 		hbThreshold: hbThreshold,
 		tlsConfig:   tlsConfig,
 		devMode:	 devMode,
-		in:          make(chan []byte, WRITE_CHANNEL_BUFFER_SIZE),
-		out:         make(chan []byte, READ_CHANNEL_BUFFER_SIZE),
+		in:          channels.NewRingChannel(channels.BufferCap(WRITE_CHANNEL_BUFFER_SIZE)),
+		out:         channels.NewRingChannel(channels.BufferCap(READ_CHANNEL_BUFFER_SIZE)),
 		done:        make(chan byte),
 	}
 }
@@ -169,9 +170,9 @@ func (c *ComSatConn) write(errChannel chan<- error, done <-chan byte) {
 		case <-done:
 			return
 		case <-hbTicker.C:
-			c.monitor.in <- []byte(BEAT)
-		case data := <-c.in:
-			c.monitor.in <- data
+			c.monitor.in.In() <- []byte(BEAT)
+		case data := <-c.in.Out():
+			c.monitor.in.In() <- data
 		}
 	}
 }
@@ -181,18 +182,18 @@ func (c *ComSatConn) read(errChannel chan<- error, done <-chan byte) {
 		select {
 		case <-done:
 			return
-		case data, ok := <-c.monitor.out:
+		case data, ok := <-c.monitor.out.Out():
 			if !ok {
 				return
 			}
 			c.latMutex.Lock()
 			c.lastActivityTime = time.Now()
 			c.latMutex.Unlock()
-			switch string(data) {
+			switch string(data.([]byte)) {
 			case BEAT:
 			case DOUBLE_BEAT:
 			default:
-				c.out <- data
+				c.out.In() <- data
 			}
 		}
 	}
