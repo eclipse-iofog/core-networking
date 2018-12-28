@@ -16,7 +16,7 @@ import (
 )
 
 type PublicConnection struct {
-	*ComSatConn
+	*ConnectorConn
 	containerConn *ContainerConn
 }
 
@@ -25,7 +25,7 @@ func newPublicConnection(id int,
 	hbInterval, hbThreshold time.Duration,
 	tlsConfig *tls.Config, devMode bool) *PublicConnection {
 	return &PublicConnection{
-		ComSatConn:    newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig, devMode),
+		ConnectorConn: newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig, devMode),
 		containerConn: newContainerConn(id, remoteAddress),
 	}
 }
@@ -35,7 +35,7 @@ func (p *PublicConnection) Connect() {
 	defer func() {
 		close(reconnect)
 	}()
-	go p.ComSatConn.Connect()
+	go p.ConnectorConn.Connect()
 	go p.readConnection(reconnect)
 
 	for {
@@ -47,7 +47,7 @@ func (p *PublicConnection) Connect() {
 }
 
 func (p *PublicConnection) Disconnect() {
-	p.ComSatConn.Disconnect()
+	p.ConnectorConn.Disconnect()
 	p.containerConn.Disconnect()
 }
 

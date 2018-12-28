@@ -18,7 +18,7 @@ import (
 )
 
 type PrivateConnection struct {
-	*ComSatConn
+	*ConnectorConn
 
 	inMessage  *channels.RingChannel
 	outMessage *channels.RingChannel
@@ -31,15 +31,15 @@ func newPrivateConnection(id int,
 	tlsConfig *tls.Config, devMode bool,
 	ready chan<- Connector) *PrivateConnection {
 	return &PrivateConnection{
-		ComSatConn: newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig, devMode),
-		inMessage:  channels.NewRingChannel(channels.BufferCap(READ_CHANNEL_BUFFER_SIZE)),
-		outMessage: channels.NewRingChannel(channels.BufferCap(WRITE_CHANNEL_BUFFER_SIZE)),
-		readyConn:  ready,
+		ConnectorConn: newConn(id, address, passcode, hbInterval, hbThreshold, tlsConfig, devMode),
+		inMessage:     channels.NewRingChannel(channels.BufferCap(READ_CHANNEL_BUFFER_SIZE)),
+		outMessage:    channels.NewRingChannel(channels.BufferCap(WRITE_CHANNEL_BUFFER_SIZE)),
+		readyConn:     ready,
 	}
 }
 
 func (p *PrivateConnection) Connect() {
-	go p.ComSatConn.Connect()
+	go p.ConnectorConn.Connect()
 	done := make(chan byte)
 	go p.writeConnection(done)
 	go p.readConnection(done)
@@ -53,7 +53,7 @@ func (p *PrivateConnection) Connect() {
 }
 
 func (p *PrivateConnection) Disconnect() {
-	p.ComSatConn.Disconnect()
+	p.ConnectorConn.Disconnect()
 	p.done <- 0
 }
 
