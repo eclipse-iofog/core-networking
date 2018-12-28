@@ -13,6 +13,7 @@ package cn
 import (
 	"github.com/eapache/channels"
 	sdk "github.com/ioFog/iofog-go-sdk"
+	"time"
 )
 
 type pool struct {
@@ -33,11 +34,12 @@ func (pool *pool) start(connectorBuilder ConnectorBuilder) {
 	for i := 0; i < pool.Count; i++ {
 		pool.Connectors[i] = connectorBuilder.Build()
 		go pool.Connectors[i].Connect()
+		time.Sleep(time.Millisecond * 20)
 	}
 }
 
-func (pool *pool) messagesFromComSat() <-chan interface{} {
-	out := channels.NewRingChannel(channels.BufferCap(READ_CHANNEL_BUFFER_SIZE*pool.Count))
+func (pool *pool) messagesFromConnector() <-chan interface{} {
+	out := channels.NewRingChannel(channels.BufferCap(READ_CHANNEL_BUFFER_SIZE * pool.Count))
 	output := func(c <-chan interface{}) {
 		for n := range c {
 			out.In() <- n
@@ -57,7 +59,7 @@ func (pool *pool) sendMessagesFromBus(incomingMessages <-chan interface{}) {
 	}
 }
 func (pool *pool) sendMessagesToBus(ioFogClient *sdk.IoFogClient) {
-	for msg := range pool.messagesFromComSat() {
+	for msg := range pool.messagesFromConnector() {
 		ioFogClient.SendMessageViaSocket(msg.(*sdk.IoMessage))
 	}
 }
