@@ -3,3 +3,8 @@
 /.idea/
 /intermediate.crt
 /ioElementCoreNetworking.iml
+bin/*
+vendor/*
+reports/*
+test.txt
+test-report.xml
