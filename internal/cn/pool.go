@@ -50,10 +50,11 @@ func (pool *pool) messagesFromComSat() <-chan *sdk.IoMessage {
 	return out
 }
 
-func (pool *pool) sendMessagesFromBus(incomingMessages <-chan *sdk.IoMessage) {
+func (pool *pool) sendMessagesFromBus(incomingMessages <-chan interface{}) {
 	for msg := range incomingMessages {
+		castMsg := msg.(*sdk.IoMessage)
 		c := <-pool.readyConnectors
-		c.(*PrivateConnection).inMessage <- msg
+		c.(*PrivateConnection).inMessage <- castMsg
 	}
 }
 func (pool *pool) sendMessagesToBus(ioFogClient *sdk.IoFogClient) {
